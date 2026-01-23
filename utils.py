@@ -5,9 +5,10 @@ def filename_is_valid(file_name: str) -> bool:
         return False
     else:
         return True
-    
+
+
 def gen_loading(current: int, end: int, size=20, char='#') -> tuple:
-    assert(len(char))
+    assert (len(char))
     p = (current/end) * 100 + 1
     n = int(p / 100 * size) + 1
     bar = '['
@@ -15,5 +16,3 @@ def gen_loading(current: int, end: int, size=20, char='#') -> tuple:
     bar += "".join(["." for i in range(size - n)])
     bar += "] " + str(int(p)) + "%"
     return bar
-    
-
