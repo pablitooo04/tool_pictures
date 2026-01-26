@@ -9,16 +9,39 @@ usage_downscale = "--downscale <x> <y>"
 filename_exemple = "picture.png, picture.jpg"
 flags = {"--sature", "--monochrome", "--cursed-downscale"}
 
-
 def save_img(data: list, size: tuple, file_name: str) -> None:
+    """
+    Saves the modified image data to a new image file.
+    Args:
+        data (list): A list of tuples representing the RGB values of
+        each pixel in the modified image.
+        size (tuple): A tuple representing the size (width, height) of
+        the image.
+        file_name (str): The name of the output image file.
+    Returns:
+        None
+    """
     output_img = Image.new("RGB", size)
     output_img.putdata(data)
     output_img.save(f"output/{file_name}")
 
-
 def select(offset: int, argv: list, file_name: str,
            data_input: list, size: int) -> tuple:
-
+    """
+    Selects and applies the appropriate image effect based on the command-line
+    arguments.
+    Args:
+        offset (int): The current index in the command-line arguments.
+        argv (list): The list of command-line arguments.
+        file_name (str): The name of the input image file.
+        data_input (list): A list of tuples representing the RGB values of
+        each pixel in the image.
+        size (tuple): A tuple representing the size (width, height) of
+        the image.
+    Returns:
+        tuple: A tuple containing the number of additional arguments consumed,
+        the modified image data, and the new size of the image.
+    """
     print(f"[{argv[i][2:]}]".upper())
     if argv[i] == "--sature":
         data_output = tools.saturator(list(data_input))
@@ -44,7 +67,6 @@ def select(offset: int, argv: list, file_name: str,
         return (2, data_output, new_size)
     else:
         raise ValueError("flag pas bon")
-
 
 if __name__ == "__main__":
     input_img = Image.open("img/" + argv[1]).convert("RGB")
