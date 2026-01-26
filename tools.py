@@ -5,7 +5,7 @@ def saturator(data_input) -> list:
     """
     Increases the saturation of the image by boosting the maximum color
     channel and reducing the minimum color channel for each pixel.
-    
+
     Args:
         data_input (list): A list of tuples representing the RGB values of
         each pixel in the image.
@@ -57,33 +57,40 @@ def monochrome(data_input: list, color: tuple) -> list:
     return data_input
 
 
-def cursed_downscale(data_input: list, new_size: tuple) -> list:
+def downscale(data_input: list, old_size: tuple, new_size: tuple) -> list:
     """
-    Downscales the image to a new size by sampling pixels at regular intervals.
+    Downscales the image to a new size using a nearest-neighbor approach.
     Args:
         data_input (list): A list of tuples representing the RGB values of
         each pixel in the image.
-        new_size (tuple): A tuple representing the desired width and height
-        of the downscaled image.
+        old_size (tuple): A tuple representing the original size (width, height)
+        of the image.
+        new_size (tuple): A tuple representing the new size (width, height)
+        of the image.
     Returns:
-        list: A list of tuples representing the RGB values of each pixel in
-        the downscaled image.
+        list: A list of tuples representing the RGB values of each pixel
+        in the downscaled image.
     """
-    new_total_pixel = new_size[0] * new_size[1]
-    data_output = []
-    for px in range(len(data_input)):
-        # load
-        if px % ((len(data_input) // 1000) + 1) == 0:
-            print("\r" + utl.gen_loading(px, len(data_input), 30, char='#'),
-                  end="")
-        # end_load
-        if px % (round(len(data_input)/new_total_pixel)) == 0:
-            data_output.append(data_input[px])
+    old_w, old_h = old_size
+    new_w, new_h = new_size
+    data = list(data_input)
+    output = []
+    ratio_x = old_w / new_w
+    ratio_y = old_h / new_h
 
-    while len(data_output) != new_total_pixel:
-        if len(data_output) > new_total_pixel:
-            data_output.pop()
-        else:
-            data_output.append((0, 0, 0))
+    for ny in range(new_h):
+        sy = int(ny * ratio_y)
+        for nx in range(new_w):
+            sx = int(nx * ratio_x)
+            index = sy * old_w + sx
+            output.append(data[index])
+            # load
+            if nx % ((new_h * new_w // 1000) + 1) == 0:
+                print("\r" + utl.gen_loading((nx*ny + ny), ((new_h * new_w)//2), 30, char='#'),
+                      end="")
+            # end_load
+
     print()
-    return data_output
+
+    return output
+

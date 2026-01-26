@@ -7,7 +7,7 @@ usage = "python3 main.py <image_name> --effect"
 usage_monochrome = "--monochrome <r> <g> <b>"
 usage_downscale = "--downscale <x> <y>"
 filename_exemple = "picture.png, picture.jpg"
-flags = {"--sature", "--monochrome", "--cursed-downscale"}
+flags = {"--sature", "--monochrome", "--downscale"}
 
 def save_img(data: list, size: tuple, file_name: str) -> None:
     """
@@ -43,19 +43,24 @@ def select(offset: int, argv: list, file_name: str,
         the modified image data, and the new size of the image.
     """
     print(f"[{argv[i][2:]}]".upper())
+
     if argv[i] == "--sature":
         data_output = tools.saturator(list(data_input))
         return (0, data_output, size)
+
     elif argv[i] == "--monochrome":
         try:
             color = tuple(int(argv[c]) for c in range(offset + 1, offset + 4))
         except (ValueError, IndexError):
-            raise ValueError(usage_monochrome)
+            print(usage_monochrome)
+            exit(1)
         if not all(0 <= value <= 255 for value in color):
-            raise ValueError(usage_monochrome)
+            print(usage_monochrome)
+            exit(1)
         data_output = tools.monochrome(list(data_input), color)
         return (3, data_output, size)
-    elif argv[i] == "--cursed-downscale":
+
+    elif argv[i] == "--downscale":
         try:
             new_size = tuple(int(argv[c])
                              for c in range(offset + 1, offset + 3))
@@ -63,8 +68,9 @@ def select(offset: int, argv: list, file_name: str,
             raise ValueError(usage_downscale)
         if not all(0 <= new_size[i] <= size[i] for i in range(2)):
             raise ValueError(usage_monochrome + "trop grand")
-        data_output = tools.cursed_downscale(data_input, new_size)
+        data_output = tools.downscale(data_input, size, new_size)
         return (2, data_output, new_size)
+
     else:
         raise ValueError("flag pas bon")
 
