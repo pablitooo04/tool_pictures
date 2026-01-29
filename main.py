@@ -5,9 +5,9 @@ from PIL import Image
 
 usage = "python3 main.py <image_name> --effect"
 usage_monochrome = "--monochrome <r> <g> <b>"
-usage_downscale = "--downscale <x> <y>"
+usage_downscale = "--rescale <x> <y>"
 filename_exemple = "picture.png, picture.jpg"
-flags = {"--sature", "--monochrome", "--downscale"}
+flags = {"--sature", "--monochrome", "--rescale", "--blur"}
 
 def save_img(data: list, size: tuple, file_name: str) -> None:
     """
@@ -42,11 +42,22 @@ def select(offset: int, argv: list, file_name: str,
         tuple: A tuple containing the number of additional arguments consumed,
         the modified image data, and the new size of the image.
     """
-    print(f"[{argv[i][2:]}]".upper())
+    print(f"[ {argv[i][2:]} ]".upper())
 
     if argv[i] == "--sature":
-        data_output = tools.saturator(list(data_input))
-        return (0, data_output, size)
+        try:
+            int(argv[i + 1])
+        except (ValueError, IndexError):
+            data_output = tools.saturator(list(data_input), 1)
+            return (0, data_output, size)
+        else:
+            if int(argv[i+1]) > 20:
+                data_output = tools.saturator(list(data_input), 20)
+            elif int(argv[i+1]) < 0:
+                data_output = tools.saturator(list(data_input), 0)
+            else:
+                data_output = tools.saturator(list(data_input), int(argv[i+1]))
+            return (1, data_output, size)
 
     elif argv[i] == "--monochrome":
         try:
@@ -60,33 +71,41 @@ def select(offset: int, argv: list, file_name: str,
         data_output = tools.monochrome(list(data_input), color)
         return (3, data_output, size)
 
-    elif argv[i] == "--downscale":
+    elif argv[i] == "--rescale":
         try:
             new_size = tuple(int(argv[c])
                              for c in range(offset + 1, offset + 3))
         except (ValueError, IndexError):
             raise ValueError(usage_downscale)
-        if not all(0 <= new_size[i] <= size[i] for i in range(2)):
-            raise ValueError(usage_monochrome + "trop grand")
-        data_output = tools.downscale(data_input, size, new_size)
+        data_output = tools.rescale(data_input, size, new_size)
         return (2, data_output, new_size)
-
+    elif argv[i] == "--blur":
+        data_output = tools.blur(list(data_input), size)
+        return (0, data_output, size)
     else:
-        raise ValueError("flag pas bon")
+        raise ValueError("Error: Invalid flag!")
 
 if __name__ == "__main__":
-    input_img = Image.open("img/" + argv[1]).convert("RGB")
-    argc = len(argv)
-    data = input_img.getdata()
-    size = input_img.size
+    try:
+        argc = len(argv)
+        if argc == 1:
+            raise ValueError("Error: args are missings!\n" + usage)
+        try:
+            input_img = Image.open("img/" + argv[1]).convert("RGB")
+        except FileNotFoundError:
+            raise FileNotFoundError("Error: File not found!")
+        data = input_img.getdata()
+        size = input_img.size
 
-    if argc < 3:
-        raise ValueError(usage)
-    elif not utl.filename_is_valid(argv[1]):
-        raise ValueError("file_name must be like ", filename_exemple)
-    i = 2
-    while (i < len(argv)):
-        offset, data, size = select(i, argv, argv[1], data, size)
-        i += offset + 1
-        if i == len(argv):
-            save_img(data, size, argv[1])
+        if argc == 2:
+            utl.get_stats(input_img, argv[1])
+        elif not utl.filename_is_valid(argv[1]):
+            raise ValueError("file_name must be like ", filename_exemple)
+        i = 2
+        while (i < len(argv)):
+            offset, data, size = select(i, argv, argv[1], data, size)
+            i += offset + 1
+            if i == len(argv):
+                save_img(data, size, argv[1])
+    except KeyboardInterrupt as e:
+        print(e)
